@@ -90,7 +90,8 @@ class _ProductListState extends State<ProductList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Daftar Produk'),
+        title: Text('TOKO-NYA DIA'),
+        centerTitle: true,
       ),
       body: Column(
         children: [
@@ -187,11 +188,17 @@ class _CartPageState extends State<CartPage> {
 
   void _decrementQuantity(Product product) {
     setState(() {
-      if (product.quantity>0) {
-        product.quantity-=1;
+      if (product.quantity>1) {
+        product.quantity--;
       }
-      if(product.quantity<1){
-        widget.cartItems.remove(product);
+    });
+  }
+
+  void _deleteItem(Product product){
+    setState(() {
+      widget.cartItems.remove(product);
+      if (product.quantity>1) {
+        product.quantity = 1;
       }
     });
   }
@@ -208,11 +215,16 @@ class _CartPageState extends State<CartPage> {
     return total + _calculateShippingCost();
   }
 
-  double _calculateShippingCost() {
+  double _calculateTotalWeight() {
     double weight = 0;
     for (Product product in widget.cartItems) {
       weight += product.weight * product.quantity;
     }
+    return weight;
+  }
+
+  double _calculateShippingCost() {
+    double weight = _calculateTotalWeight();
     if (_selectedShippingOption == null) {
       return 0;
     } else {
@@ -221,11 +233,13 @@ class _CartPageState extends State<CartPage> {
   }
 
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Shopping Cart'),
+        title: Text('TOKO-NYA DIA'),
+        centerTitle: true,
       ),
       body: ListView.builder(
         itemCount: widget.cartItems.length,
@@ -269,6 +283,8 @@ class _CartPageState extends State<CartPage> {
                                       widget.cartItems[index]),
                                   icon: Icon(Icons.add),
                                 ),
+                                IconButton(onPressed: () => _deleteItem(widget.cartItems[index]),
+                                    icon: Icon(Icons.delete))
                               ],
                             ),
                           ],
@@ -290,25 +306,72 @@ class _CartPageState extends State<CartPage> {
           );
         },
       ),
+
+
       bottomNavigationBar: BottomAppBar(
         child: Container(
-          height: 50,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          height: 200,
+          child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: Text(
-                  'Total:',
-                  style: TextStyle(fontSize: 18),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Pilih Kurir:'),
+                  DropdownButton<ShippingOption>(
+                    value: _selectedShippingOption,
+                    onChanged: (ShippingOption? newValue) {
+                      setState(() {
+                        _selectedShippingOption = newValue;
+                      });
+                    },
+                    items: _shippingOptions
+                        .map<DropdownMenuItem<ShippingOption>>(
+                            (ShippingOption value) {
+                          return DropdownMenuItem<ShippingOption>(
+                            value: value,
+                            child: Text(value.name),
+                          );
+                        }).toList(),
+                  ),
+                ],
               ),
-              Padding(
-                padding: EdgeInsets.only(right: 10),
-                child: Text(
-                  'Rp ${_calculateTotalPrice()}',
-                  style: TextStyle(fontSize: 18),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Berat Total:'),
+                  Text('${_calculateTotalWeight()} kg'),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0,0,0.0,25.0),
+                    child: Text('Biaya Pengiriman:'),
+                  ),
+                  Text('Rp ${_calculateShippingCost()}'),
+                ],
+              ),
+              Divider(height: 1),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 10),
+                    child: Text(
+                      'Total:',
+                      style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),
+
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Text(
+                      'Rp ${_calculateTotalPrice()}',
+                      style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
